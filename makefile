@@ -1,7 +1,18 @@
 SHELL := /bin/bash
 
+# ==============================================================================
+# Testing running system
+
+# Access metrics directly (4000) or through the sidecar (3001)
+# go install github.com/divan/expvarmon@latest
+# expvarmon -ports=":4000" -vars="build,requests,goroutines,errors,panics,mem:memstats.Alloc"
+
+
 run:
-	go run main.go
+	go run app/services/sales-api/main.go
+
+run-fmt:
+	go run app/services/sales-api/main.go | go run app/tooling/logfmt/main.go
 
 build:
 	go build -ldflags "-X main.build=local"
