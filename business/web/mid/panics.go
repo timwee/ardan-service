@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"runtime/debug"
 
+	"github.com/timwee/service/business/sys/metrics"
 	"github.com/timwee/service/foundation/web"
 )
 
@@ -29,7 +30,7 @@ func Panics() web.Middleware {
 					err = fmt.Errorf("PANIC [%v] TRACE[%s]", rec, string(trace))
 
 					// Updates the metrics stored in the context.
-					// metrics.AddPanics(ctx)
+					metrics.AddPanics(ctx)
 				}
 			}()
 
