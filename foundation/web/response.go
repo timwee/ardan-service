@@ -7,6 +7,9 @@ import (
 )
 
 func Respond(ctx context.Context, w http.ResponseWriter, data interface{}, statusCode int) error {
+
+	SetStatusCode(ctx, statusCode)
+
 	// If there is nothing to marshal then set status code and return.
 	if statusCode == http.StatusNoContent {
 		w.WriteHeader(statusCode)
