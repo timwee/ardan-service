@@ -18,6 +18,7 @@ run:
 
 test:
 	go test ./...
+# staticcheck -checks=all ./...
 
 run-fmt:
 	go run app/services/sales-api/main.go | go run app/tooling/logfmt/main.go
