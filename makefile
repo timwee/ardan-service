@@ -16,6 +16,9 @@ SHELL := /bin/bash
 run:
 	go run app/services/sales-api/main.go
 
+test:
+	go test ./...
+
 run-fmt:
 	go run app/services/sales-api/main.go | go run app/tooling/logfmt/main.go
 
