@@ -34,10 +34,6 @@ VERSION := 1.0
 
 all: sales-api
 
-tidy:
-	go mod tidy
-	go mod vendor
-
 sales-api:
 	docker build \
 		-f zarf/docker/dockerfile.sales-api \
@@ -46,6 +42,39 @@ sales-api:
 		--build-arg BUILD_DATE=`date -u +"%Y-%m-%dT%H:%M:%SZ"` \
 		.
 
+# ==============================================================================
+# Administration
+
+migrate:
+	go run app/tooling/sales-admin/main.go migrate
+
+seed: migrate
+	go run app/tooling/sales-admin/main.go seed
+# ==============================================================================
+# Modules support
+
+deps-reset:
+	git checkout -- go.mod
+	go mod tidy
+	go mod vendor
+
+tidy:
+	go mod tidy
+	go mod vendor
+
+deps-upgrade:
+	# go get $(go list -f '{{if not (or .Main .Indirect)}}{{.Path}}{{end}}' -m all)
+	go get -u -v ./...
+	go mod tidy
+	go mod vendor
+
+deps-cleancache:
+	go clean -modcache
+
+list:
+	go list -mod=mod all
+# ==============================================================================
+# Running from within k8s/kind
 # Running from within k8s/kind
 
 KIND_CLUSTER := ardan-starter-cluster
