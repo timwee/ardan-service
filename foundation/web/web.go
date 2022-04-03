@@ -73,9 +73,9 @@ func (a *App) Handle(method string, group string, path string, handler Handler, 
 		}
 	}
 
-	// finalPath := path
-	// if group != "" {
-	// 	finalPath = "/" + group + path
-	// }
-	a.ContextMux.Handle(method, path, h)
+	finalPath := path
+	if group != "" {
+		finalPath = "/" + group + path
+	}
+	a.ContextMux.Handle(method, finalPath, h)
 }
