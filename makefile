@@ -21,8 +21,8 @@ run:
 	go run app/services/sales-api/main.go
 
 test:
-	go test ./...
-# staticcheck -checks=all ./...
+	go test ./... -count=1
+	staticcheck -checks=all ./...
 
 run-fmt:
 	go run app/services/sales-api/main.go | go run app/tooling/logfmt/main.go
