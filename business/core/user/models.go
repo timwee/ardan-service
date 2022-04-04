@@ -1,56 +1,57 @@
-package product
+package user
 
 import (
 	"time"
 	"unsafe"
 
-	"github.com/timwee/service/business/core/product/db"
+	"github.com/timwee/service/business/core/user/db"
 )
 
-// Product represents an individual product.
-type Product struct {
-	ID          string    `json:"id"`           // Unique identifier.
-	Name        string    `json:"name"`         // Display name of the product.
-	Cost        int       `json:"cost"`         // Price for one item in cents.
-	Quantity    int       `json:"quantity"`     // Original number of items available.
-	Sold        int       `json:"sold"`         // Aggregate field showing number of items sold.
-	Revenue     int       `json:"revenue"`      // Aggregate field showing total cost of sold items.
-	UserID      string    `json:"user_id"`      // ID of the user who created the product.
-	DateCreated time.Time `json:"date_created"` // When the product was added.
-	DateUpdated time.Time `json:"date_updated"` // When the product record was last modified.
+// User represents an individual user.
+type User struct {
+	ID           string    `json:"id"`
+	Name         string    `json:"name"`
+	Email        string    `json:"email"`
+	Roles        []string  `json:"roles"`
+	PasswordHash []byte    `json:"-"`
+	DateCreated  time.Time `json:"date_created"`
+	DateUpdated  time.Time `json:"date_updated"`
 }
 
-// NewProduct is what we require from clients when adding a Product.
-type NewProduct struct {
-	Name     string `json:"name" validate:"required"`
-	Cost     int    `json:"cost" validate:"required,gte=0"`
-	Quantity int    `json:"quantity" validate:"gte=1"`
-	UserID   string `json:"user_id" validate:"required"`
+// NewUser contains information needed to create a new User.
+type NewUser struct {
+	Name            string   `json:"name" validate:"required"`
+	Email           string   `json:"email" validate:"required,email"`
+	Roles           []string `json:"roles" validate:"required"`
+	Password        string   `json:"password" validate:"required"`
+	PasswordConfirm string   `json:"password_confirm" validate:"eqfield=Password"`
 }
 
-// UpdateProduct defines what information may be provided to modify an
-// existing Product. All fields are optional so clients can send just the
-// fields they want changed. It uses pointer fields so we can differentiate
-// between a field that was not provided and a field that was provided as
-// explicitly blank. Normally we do not want to use pointers to basic types but
-// we make exceptions around marshalling/unmarshalling.
-type UpdateProduct struct {
-	Name     *string `json:"name"`
-	Cost     *int    `json:"cost" validate:"omitempty,gte=0"`
-	Quantity *int    `json:"quantity" validate:"omitempty,gte=1"`
+// UpdateUser defines what information may be provided to modify an existing
+// User. All fields are optional so clients can send just the fields they want
+// changed. It uses pointer fields so we can differentiate between a field that
+// was not provided and a field that was provided as explicitly blank. Normally
+// we do not want to use pointers to basic types but we make exceptions around
+// marshalling/unmarshalling.
+type UpdateUser struct {
+	Name            *string  `json:"name"`
+	Email           *string  `json:"email" validate:"omitempty,email"`
+	Roles           []string `json:"roles"`
+	Password        *string  `json:"password"`
+	PasswordConfirm *string  `json:"password_confirm" validate:"omitempty,eqfield=Password"`
 }
 
 // =============================================================================
 
-func toProduct(dbPrd db.Product) Product {
-	pu := (*Product)(unsafe.Pointer(&dbPrd))
+func toUser(dbUsr db.User) User {
+	pu := (*User)(unsafe.Pointer(&dbUsr))
 	return *pu
 }
 
-func toProductSlice(dbPrds []db.Product) []Product {
-	prds := make([]Product, len(dbPrds))
-	for i, dbPrd := range dbPrds {
-		prds[i] = toProduct(dbPrd)
+func toUserSlice(dbUsrs []db.User) []User {
+	users := make([]User, len(dbUsrs))
+	for i, dbUsr := range dbUsrs {
+		users[i] = toUser(dbUsr)
 	}
-	return prds
+	return users
 }
