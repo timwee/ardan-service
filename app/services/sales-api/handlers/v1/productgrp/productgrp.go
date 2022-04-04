@@ -10,7 +10,7 @@ import (
 
 	"github.com/timwee/service/business/core/product"
 	"github.com/timwee/service/business/sys/auth"
-	v1Web "github.com/timwee/service/business/web/v1"
+	"github.com/timwee/service/business/sys/validate"
 	"github.com/timwee/service/foundation/web"
 )
 
@@ -48,7 +48,7 @@ func (h Handlers) Update(ctx context.Context, w http.ResponseWriter, r *http.Req
 
 	claims, err := auth.GetClaims(ctx)
 	if err != nil {
-		return v1Web.NewRequestError(auth.ErrForbidden, http.StatusForbidden)
+		return validate.NewRequestError(auth.ErrForbidden, http.StatusForbidden)
 	}
 
 	var upd product.UpdateProduct
@@ -62,9 +62,9 @@ func (h Handlers) Update(ctx context.Context, w http.ResponseWriter, r *http.Req
 	if err != nil {
 		switch {
 		case errors.Is(err, product.ErrInvalidID):
-			return v1Web.NewRequestError(err, http.StatusBadRequest)
+			return validate.NewRequestError(err, http.StatusBadRequest)
 		case errors.Is(err, product.ErrNotFound):
-			return v1Web.NewRequestError(err, http.StatusNotFound)
+			return validate.NewRequestError(err, http.StatusNotFound)
 		default:
 			return fmt.Errorf("querying product[%s]: %w", id, err)
 		}
@@ -72,15 +72,15 @@ func (h Handlers) Update(ctx context.Context, w http.ResponseWriter, r *http.Req
 
 	// If you are not an admin and looking to update a product you don't own.
 	if !claims.Authorized(auth.RoleAdmin) && prd.UserID != claims.Subject {
-		return v1Web.NewRequestError(auth.ErrForbidden, http.StatusForbidden)
+		return validate.NewRequestError(auth.ErrForbidden, http.StatusForbidden)
 	}
 
 	if err := h.Product.Update(ctx, id, upd, v.Now); err != nil {
 		switch {
 		case errors.Is(err, product.ErrInvalidID):
-			return v1Web.NewRequestError(err, http.StatusBadRequest)
+			return validate.NewRequestError(err, http.StatusBadRequest)
 		case errors.Is(err, product.ErrNotFound):
-			return v1Web.NewRequestError(err, http.StatusNotFound)
+			return validate.NewRequestError(err, http.StatusNotFound)
 		default:
 			return fmt.Errorf("ID[%s] Product[%+v]: %w", id, &upd, err)
 		}
@@ -93,7 +93,7 @@ func (h Handlers) Update(ctx context.Context, w http.ResponseWriter, r *http.Req
 func (h Handlers) Delete(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 	claims, err := auth.GetClaims(ctx)
 	if err != nil {
-		return v1Web.NewRequestError(auth.ErrForbidden, http.StatusForbidden)
+		return validate.NewRequestError(auth.ErrForbidden, http.StatusForbidden)
 	}
 
 	id := web.Param(r, "id")
@@ -102,13 +102,13 @@ func (h Handlers) Delete(ctx context.Context, w http.ResponseWriter, r *http.Req
 	if err != nil {
 		switch {
 		case errors.Is(err, product.ErrInvalidID):
-			return v1Web.NewRequestError(err, http.StatusBadRequest)
+			return validate.NewRequestError(err, http.StatusBadRequest)
 		case errors.Is(err, product.ErrNotFound):
 
 			// Don't send StatusNotFound here since the call to Delete
 			// below won't if this product is not found. We only know
 			// this because we are doing the Query for the UserID.
-			return v1Web.NewRequestError(err, http.StatusNoContent)
+			return validate.NewRequestError(err, http.StatusNoContent)
 		default:
 			return fmt.Errorf("querying product[%s]: %w", id, err)
 		}
@@ -116,13 +116,13 @@ func (h Handlers) Delete(ctx context.Context, w http.ResponseWriter, r *http.Req
 
 	// If you are not an admin and looking to delete a product you don't own.
 	if !claims.Authorized(auth.RoleAdmin) && prd.UserID != claims.Subject {
-		return v1Web.NewRequestError(auth.ErrForbidden, http.StatusForbidden)
+		return validate.NewRequestError(auth.ErrForbidden, http.StatusForbidden)
 	}
 
 	if err := h.Product.Delete(ctx, id); err != nil {
 		switch {
 		case errors.Is(err, product.ErrInvalidID):
-			return v1Web.NewRequestError(err, http.StatusBadRequest)
+			return validate.NewRequestError(err, http.StatusBadRequest)
 		default:
 			return fmt.Errorf("ID[%s]: %w", id, err)
 		}
@@ -136,12 +136,12 @@ func (h Handlers) Query(ctx context.Context, w http.ResponseWriter, r *http.Requ
 	page := web.Param(r, "page")
 	pageNumber, err := strconv.Atoi(page)
 	if err != nil {
-		return v1Web.NewRequestError(fmt.Errorf("invalid page format, page[%s]", page), http.StatusBadRequest)
+		return validate.NewRequestError(fmt.Errorf("invalid page format, page[%s]", page), http.StatusBadRequest)
 	}
 	rows := web.Param(r, "rows")
 	rowsPerPage, err := strconv.Atoi(rows)
 	if err != nil {
-		return v1Web.NewRequestError(fmt.Errorf("invalid rows format, rows[%s]", rows), http.StatusBadRequest)
+		return validate.NewRequestError(fmt.Errorf("invalid rows format, rows[%s]", rows), http.StatusBadRequest)
 	}
 
 	products, err := h.Product.Query(ctx, pageNumber, rowsPerPage)
@@ -159,9 +159,9 @@ func (h Handlers) QueryByID(ctx context.Context, w http.ResponseWriter, r *http.
 	if err != nil {
 		switch {
 		case errors.Is(err, product.ErrInvalidID):
-			return v1Web.NewRequestError(err, http.StatusBadRequest)
+			return validate.NewRequestError(err, http.StatusBadRequest)
 		case errors.Is(err, product.ErrNotFound):
-			return v1Web.NewRequestError(err, http.StatusNotFound)
+			return validate.NewRequestError(err, http.StatusNotFound)
 		default:
 			return fmt.Errorf("ID[%s]: %w", id, err)
 		}
